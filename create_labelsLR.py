@@ -22,15 +22,27 @@ def classify_keywords(keywords):
         classified_diseases.append('A')
     if 'hypertension' in keywords.lower() or 'hypertensive' in keywords.lower():
         classified_diseases.append('H')
-    if 'myopia' in keywords.lower():
+    if 'myopia' in keywords.lower() or 'myopic' in keywords.lower():
         classified_diseases.append('M')    
+    if any(name in keywords.lower() for name in disease_names):
+        classified_diseases.append('O')
     if not classified_diseases:
         classified_diseases.append('O')
+        print(keywords.lower())
     return classified_diseases
+
+disease_names = [
+    'laser', 'drusen', 'pigment', 'epiretinal membrane',
+    'maculopathy', 'vitreous degeneration', 'myelinated nerve fibers',
+    'refractive media opacity', 'tessellated fundus', 'atrophy',
+    'spotted membranous change', 'occlusion', 'syndrome',
+    'neovascularization', 'sheathing', 'coloboma', 'edema'
+]
 
 df['class-left'] = df['Left-Diagnostic Keywords'].apply(classify_keywords)
 df['class-right'] = df['Right-Diagnostic Keywords'].apply(classify_keywords)
 
+# Plot
 # Get counts original, left, right
 disease_columns = ['N', 'D', 'G', 'C', 'A', 'H', 'M', 'O']
 df['Diseases'] = df[disease_columns].apply(lambda row: [col for col in disease_columns if row[col] == 1], axis=1)
@@ -55,10 +67,3 @@ axes[2].set_ylabel('Count')
 plt.tight_layout()
 plt.show()
 
-#what keywords are not used yet?
-# unknown_other_df = df[(df['class-left'] == 'other') & (df['class-right'] == 'other')]
-# for index, row in unknown_other_df.iterrows():
-#     print(f"Index: {index}")
-#     print(f"Left Keywords: {row['Left-Diagnostic Keywords']}")
-#     print(f"Right Keywords: {row['Right-Diagnostic Keywords']}")
-#     print('-' * 50)
