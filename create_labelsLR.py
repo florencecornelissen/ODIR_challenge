@@ -12,7 +12,7 @@ def classify_keywords(keywords):
     classified_diseases = []
     if 'normal' in keywords.lower():
         classified_diseases.append('N')  
-    if 'diabetes' in keywords.lower() or 'diabetic' in keywords.lower() or 'retinopathy' in keywords.lower():
+    if 'diabetes' in keywords.lower() or 'diabetic' in keywords.lower() or 'diabetic retinopathy' in keywords.lower() or 'proliferative retinopathy' in keywords.lower():
         classified_diseases.append('D')  
     if 'glaucoma' in keywords.lower():
         classified_diseases.append('G')
