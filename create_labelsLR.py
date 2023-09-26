@@ -5,9 +5,11 @@ import itertools
 import seaborn as sns
 from collections import Counter
 
+# Data
 csv_file = 'ODIR-5K_Training_Annotations.csv' 
 df = pd.read_csv(csv_file, delimiter=';')
 
+# Labels
 def classify_keywords(keywords):
     classified_diseases = []
     if 'normal' in keywords.lower():
@@ -42,28 +44,42 @@ disease_names = [
 df['class-left'] = df['Left-Diagnostic Keywords'].apply(classify_keywords)
 df['class-right'] = df['Right-Diagnostic Keywords'].apply(classify_keywords)
 
-# Plot
-# Get counts original, left, right
 disease_columns = ['N', 'D', 'G', 'C', 'A', 'H', 'M', 'O']
-df['Diseases'] = df[disease_columns].apply(lambda row: [col for col in disease_columns if row[col] == 1], axis=1)
+disease_counts = df[disease_columns].sum()
 
-# Export csv
-df.to_csv('ODIR-5K_Training_Annotations_LR.csv', index=False)
-
-# Visualise counts
+# Plot
+color_mapping = {
+    'N': '#1f77b4',
+    'D': '#ff7f0e',
+    'G': '#2ca02c',
+    'C': '#d62728',
+    'A': '#9467bd',
+    'H': '#8c564b',
+    'M': '#e377c2',
+    'O': '#7f7f7f'
+}
 fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-df['class-left'].value_counts().plot(kind='bar', ax=axes[0])
-axes[0].set_title('Counts of class-left')
+left_counts = df['class-left'].explode().value_counts().sort_values(ascending=False)
+left_counts.plot(kind='bar', ax=axes[0], color=[color_mapping.get(label, 'gray') for label in left_counts.index], width=1)
+axes[0].set_title('Counts of Labels Left')
 axes[0].set_xlabel('Class')
 axes[0].set_ylabel('Count')
-df['class-right'].value_counts().plot(kind='bar', ax=axes[1])
-axes[1].set_title('Counts of class-right')
+right_counts = df['class-right'].explode().value_counts().sort_values(ascending=False)
+right_counts.plot(kind='bar', ax=axes[1], color=[color_mapping.get(label, 'gray') for label in right_counts.index], width=1)
+axes[1].set_title('Counts of Labels Right')
 axes[1].set_xlabel('Class')
 axes[1].set_ylabel('Count')
-df['Diseases'].value_counts().plot(kind='bar', ax=axes[2])
-axes[2].set_title('Counts of Diseases')
+disease_counts = df[disease_columns].sum().sort_values(ascending=False)
+disease_counts.plot(kind='bar', ax=axes[2], color=[color_mapping.get(label, 'gray') for label in disease_counts.index], width=1)
+axes[2].set_title('Counts of Labels Original')
 axes[2].set_xlabel('Disease')
 axes[2].set_ylabel('Count')
-plt.tight_layout()
+colors = sns.color_palette("pastel")
+sns.set_palette(colors)
+plt.tight_layout(rect=[0, 0, 1, 0.95]) 
+plt.subplots_adjust(wspace=0.2) 
 plt.show()
+
+# Export csv
+# df.to_csv('ODIR-5K_Training_Annotations_LR.csv', index=False)
 
