@@ -10,21 +10,21 @@ csv_file = 'ODIR-5K_Training_Annotations.csv'
 df = pd.read_csv(csv_file, delimiter=';')
 
 # Labels
-def classify_keywords(keywords):
+def classify_keywords(keywords, df_row):
     classified_diseases = []
-    if 'normal' in keywords.lower():
+    if 'normal' in keywords.lower():# and df_row['N'] == 1:
         classified_diseases.append('N')  
-    if 'diabetes' in keywords.lower() or 'diabetic' in keywords.lower() or 'diabetic retinopathy' in keywords.lower() or 'proliferative retinopathy' in keywords.lower():
+    if ('diabetes' in keywords.lower() or 'diabetic' in keywords.lower() or 'proliferative retinopathy' in keywords.lower()) and df_row['D'] == 1:
         classified_diseases.append('D')  
-    if 'glaucoma' in keywords.lower():
+    if 'glaucoma' in keywords.lower() and df_row['G'] == 1:
         classified_diseases.append('G')
-    if 'cataract' in keywords.lower():
+    if 'cataract' in keywords.lower() and df_row['C'] == 1:
         classified_diseases.append('C')
-    if 'amd' in keywords.lower() or 'age-related macular degeneration' in keywords.lower():
+    if ('amd' in keywords.lower() or 'age-related macular degeneration' in keywords.lower()) and df_row['A'] == 1:
         classified_diseases.append('A')
-    if 'hypertension' in keywords.lower() or 'hypertensive' in keywords.lower():
+    if ('hypertension' in keywords.lower() or 'hypertensive' in keywords.lower()) and df_row['H'] == 1:
         classified_diseases.append('H')
-    if 'myopia' in keywords.lower() or 'myopic' in keywords.lower():
+    if ('myopia' in keywords.lower() or 'myopic' in keywords.lower()) and df_row['M'] == 1:
         classified_diseases.append('M')    
     if any(name in keywords.lower() for name in disease_names):
         classified_diseases.append('O')
@@ -41,8 +41,8 @@ disease_names = [
     'neovascularization', 'sheathing', 'coloboma', 'edema'
 ]
 
-df['class-left'] = df['Left-Diagnostic Keywords'].apply(classify_keywords)
-df['class-right'] = df['Right-Diagnostic Keywords'].apply(classify_keywords)
+df['class-left'] = df.apply(lambda row: classify_keywords(row['Left-Diagnostic Keywords'], row), axis=1)
+df['class-right'] = df.apply(lambda row: classify_keywords(row['Right-Diagnostic Keywords'], row), axis=1)
 
 disease_columns = ['N', 'D', 'G', 'C', 'A', 'H', 'M', 'O']
 disease_counts = df[disease_columns].sum()
@@ -81,5 +81,5 @@ plt.subplots_adjust(wspace=0.2)
 plt.show()
 
 # Export csv
-# df.to_csv('ODIR-5K_Training_Annotations_LR.csv', index=False)
+df.to_csv('ODIR-5K_Training_Annotations_LR.csv', index=False)
 
