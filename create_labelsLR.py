@@ -6,8 +6,8 @@ import seaborn as sns
 from collections import Counter
 
 # Data
-csv_file = 'ODIR-5K_Training_Annotations.csv' 
-df = pd.read_csv(csv_file, delimiter=';')
+csv_file = 'ODIR-5K_Training_Annotations_Cleaned.csv' 
+df = pd.read_csv(csv_file, delimiter=',')
 
 # Labels
 def classify_keywords(keywords, df_row):
@@ -81,5 +81,5 @@ plt.subplots_adjust(wspace=0.2)
 plt.show()
 
 # Export csv
-df.to_csv('ODIR-5K_Training_Annotations_LR.csv', index=False)
+df.to_csv('ODIR-5K_Training_Annotations_Cleaned_LabelsLR.csv', index=False)
 
