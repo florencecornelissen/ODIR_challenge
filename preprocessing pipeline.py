@@ -58,7 +58,7 @@ df1['labels'] = np.where(df1['Side'] == 0, df1['class-left'], df1['class-right']
 df1['Diagnostic Keywords'] = np.where(df1['Side'] == 0, df1['Left-Diagnostic Keywords'], df1['Right-Diagnostic Keywords'])
 
 #keep only the following columns
-df1[['ID', 'Patient Age', 'Patient Sex', 'labels', 'Diagnostic Keywords']]
+df1 = df1[['ID', 'labels', 'Diagnostic Keywords']]
 
 original_image_folder = "ODIR-5K_Training_Dataset"
 copied_image_folder = "ODIR-5K_Training_Dataset_Cleaned"
@@ -87,11 +87,9 @@ for search_string in search_strings:
 # Remove duplicates from the list of image file names to delete
 image_files_to_delete = list(set(image_files_to_delete))
 
-len(image_files_to_delete)
-
 # Delete the corresponding images from the copied folder
 for image_file in image_files_to_delete:
-    print(f"Deleting: {image_file}")
+    #print(f"Deleting: {image_file}")
     copied_image_path = os.path.join(copied_image_folder, image_file)
     if os.path.exists(copied_image_path):
         os.remove(copied_image_path)
@@ -100,46 +98,40 @@ for image_file in image_files_to_delete:
 df1 = df1[~(df1['ID'].isin(image_files_to_delete))]
 df1.to_csv("ODIR-5K_Training_Preprocessed.csv", index=False)
 
-dataset_path = "ODIR-5K_Training_Dataset_Cleaned"
+# dataset_path = "ODIR-5K_Training_Dataset_Cleaned"
 output_path = "squared_and_cropped_dataset"
 for file in os.listdir(output_path):
     os.remove(os.path.join(output_path, file))
 
 def square_resized_images(input_directory, output_directory):
-    for root, _, files in os.walk(input_directory):
-        for filename in files:
-                try:
-                    image = Image.open(os.path.join(root, filename))
-                    width, height = image.size
+    for file in os.listdir(input_directory):
+        image = Image.open(os.path.join(input_directory, file))
+        width, height = image.size
                     
-                    left = 0
-                    top = 0
-                    right = width
-                    bottom = height
+        left = 0
+        top = 0
+        right = width
+        bottom = height
                     
-                    if width > height:
-                        # Calculate the cropping dimensions to make it square
-                        left = (width - height) / 2
-                        right = (width + height) / 2
+        if width > height:
+                # Calculate the cropping dimensions to make it square
+            left = (width - height) / 2
+            right = (width + height) / 2
                         
-                        # Only crop when image is not squared
-                        image = image.crop((left, top, right, bottom))
+                # Only crop when image is not squared
+            image = image.crop((left, top, right, bottom))
 
-                    elif height > width:
-                        top = int((height - width) / 2)
-                        bottom = int((height + width) / 2)
+        elif height > width:
+            top = int((height - width) / 2)
+            bottom = int((height + width) / 2)
                         
-                        image = image.crop((left, top, right, bottom))
+            image = image.crop((left, top, right, bottom))
                 
-                    image = image.resize((224, 224))
+        image = image.resize((224, 224))
                         
                     # Save the cropped and resized images
-                    output_file = os.path.join(output_directory, filename)
-                    image.save(output_file)
-                        
-                except Exception as e:
-                    print(f"Error processing {filename}: {str(e)}")
+        output_file = os.path.join(output_directory, file)
+        image.save(output_file)
 
 # Call the function to process images
-square_resized_images(dataset_path, output_path)
-
+square_resized_images(copied_image_folder, output_path)
