@@ -10,3 +10,6 @@
 /squared_and_cropped_dataset_test
 /CheckpointResNet50
 /Checkpointtest
+/CheckpointVGG19
+/CheckpointXception
+/CheckpointDenseNet121
