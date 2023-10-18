@@ -15,10 +15,11 @@ import cv2
 import re
 import tensorflow as tf
 from keras import backend as K
+from sklearn.metrics import f1_score, cohen_kappa_score
 from keras.applications import ResNet50, VGG19
 from tensorflow.keras.utils import Sequence
 from tensorflow.keras.models import Model
-from keras.models import load_model
+from keras.saving import load_model
 import pickle
 
 X_train = np.load('./Datasets/X_train.npy')
@@ -30,7 +31,7 @@ with open('./Datasets/class_weights.pkl', 'rb') as file:
 
 IMG_SHAPE = X_train[0].shape
 
-base_model = VGG19(include_top = False, weights = 'imagenet', input_shape = IMG_SHAPE)
+base_model = ResNet50(include_top = False, weights = 'imagenet', input_shape = IMG_SHAPE)
 base_model.trainable = False
 model= Sequential()
 model.add(InputLayer(input_shape = IMG_SHAPE))
@@ -43,12 +44,8 @@ model.add(Dropout(.2))
 model.add(Dense(8,activation=('sigmoid')))
 
 # Model is saved at the end of every epoch, if it's the best seen so far.
-checkpoint_directory = './CheckpointVGG19/'
-
-if not os.path.exists(checkpoint_directory):
-    os.mkdir(checkpoint_directory)
-
-checkpoint_filepath = './CheckpointVGG19'
+os.mkdir('./CheckpointResNet50/')
+checkpoint_filepath = './CheckpointResNet50'
 model_checkpoint_callback = ModelCheckpoint(
     filepath=checkpoint_filepath,
     save_weights_only=False,
@@ -58,7 +55,7 @@ model_checkpoint_callback = ModelCheckpoint(
 
 #Initializing the hyperparameters
 batch_size= 2**6
-initial_epochs=5 #15
+initial_epochs=15
 learn_rate=0.001
 adam = Adam(learning_rate=learn_rate)
 
@@ -83,14 +80,39 @@ class CustomDataGenerator(Sequence):
 
 train_generator = CustomDataGenerator(X_train, y_train, batch_size, loaded_class_weights)
 
+def f1_score_metric(y_true, y_pred):
+    y_pred_binary = K.round(y_pred)
+    
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred_binary, 0, 1)))
+    predicted_positives = K.sum(K.round(K.clip(y_pred_binary, 0, 1)))
+    actual_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+    
+    precision = true_positives / (predicted_positives + K.epsilon())
+    recall = true_positives / (actual_positives + K.epsilon())
+    
+    f1 = 2 * (precision * recall) / (precision + recall + K.epsilon())
+    
+    return f1
 
 
-model.compile(optimizer=adam,loss='binary_crossentropy',metrics=['AUC', 'accuracy'])
+def cohen_kappa_metric(y_true, y_pred):
+    y_pred_binary = K.round(y_pred)
+
+    observed_agreement = K.mean(K.equal(y_true, y_pred_binary))
+    
+    expected_agreement = K.mean(y_true) * K.mean(y_pred_binary) + (1 - K.mean(y_true)) * (1 - K.mean(y_pred_binary))
+    
+    kappa = (observed_agreement - expected_agreement) / (1 - expected_agreement)
+
+    return kappa
+
+
+model.compile(optimizer=adam,loss='binary_crossentropy',metrics=['AUC', 'accuracy', f1_score_metric, cohen_kappa_metric])
 
 history = model.fit(train_generator,
                     epochs=initial_epochs,
                     validation_data=(X_val,y_val),
-                    steps_per_epoch=15, # len(X_train)/batch_size,
+                    steps_per_epoch= len(X_train)/batch_size,
                     validation_steps=len(X_val),
                     callbacks=[model_checkpoint_callback],
                     verbose = 1)
@@ -122,6 +144,7 @@ plt.title('Training and Validation Loss')
 plt.xlabel('epoch')
 plt.savefig('VGG19.png')
 
+f1_scores = history.history['f1_score_metric']
 
 ### Testing set ###
 
@@ -161,7 +184,7 @@ for image in tqdm(test_img):
 
 X_test = np.asarray(X_test, dtype=np.float32)
 
-model = load_model('./CheckpointVGG19/')
+model = load_model('./CheckpointResNet50/')
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
 batch_size=2**6
