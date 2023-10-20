@@ -100,6 +100,10 @@ df1.to_csv("ODIR-5K_Training_Preprocessed.csv", index=False)
 
 # dataset_path = "ODIR-5K_Training_Dataset_Cleaned"
 output_path = "squared_and_cropped_dataset"
+
+if not os.path.exists(output_path):
+    os.mkdir(output_path)
+
 for file in os.listdir(output_path):
     os.remove(os.path.join(output_path, file))
 
