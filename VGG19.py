@@ -33,7 +33,7 @@ IMG_SHAPE = X_train[0].shape
 base_model = VGG19(include_top = False, weights = 'imagenet', input_shape = IMG_SHAPE)
 base_model.trainable = False
 model= Sequential()
-model.add(InputLayer(input_shape = IMG_SHAPE))
+model.add(Rescaling(1/.255, input_shape = IMG_SHAPE))
 model.add(base_model)
 model.add(Flatten())
 model.add(Dense(256,activation=('relu'))) 
