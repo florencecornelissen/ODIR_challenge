@@ -96,7 +96,7 @@ for image_file in os.listdir(original_image_folder):
 
 # # Save the cleaned DataFrame to a new CSV file
 # df1 = df1[~(df1['ID'].isin(image_files_to_delete))]
-# df1.to_csv("ODIR-5K_Training_Preprocessed.csv", index=False)
+df1.to_csv("ODIR-5K_Training_Preprocessed_wo_control.csv", index=False)
 
 # dataset_path = "ODIR-5K_Training_Dataset_Cleaned"
 output_path = "squared_and_cropped_dataset_wo_control"
