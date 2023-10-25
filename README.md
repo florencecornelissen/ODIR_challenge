@@ -1,4 +1,4 @@
-# ODIR_challange
+# ODIR_challenge
 ODIR Challenge
 
 The folder Preprocessing contains the preprocessing pipeline on both the annotations as the images.
